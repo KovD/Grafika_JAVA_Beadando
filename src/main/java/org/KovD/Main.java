@@ -1,13 +1,12 @@
 package org.KovD;
+import org.KovD.Classes.*;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
-
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
 public class Main {
     public static void main(String[] args) {
-
         System.out.println("Hello World");
         if (!glfwInit()) {
             throw new IllegalStateException("No init in my inits");
@@ -26,30 +25,69 @@ public class Main {
         glfwShowWindow(Window);
 
         glfwMakeContextCurrent(Window);
-
         GL.createCapabilities();
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_TEXTURE_2D);
+
+
+        glColor3f(1f, 1f, 1f);
         float input = 0;
+
+        Scene scene = new Scene();
+        String texPath = "C:\\Java_projekt\\Beadando_Milef\\src\\main\\resources\\textures\\enemy.png";
+
+        GameObject centerObj = new GameObject(0.2f, 0f, texPath);
+
+        Enemy enemy1 = new Enemy(-1.0f, 1.0f, texPath, 100, 0.5f);
+        Enemy enemy2 = new Enemy(1.0f, 1.0f, texPath, 100, 0.5f);
+
+        enemy1.setTarget(centerObj);
+        enemy2.setTarget(centerObj);
+
+        scene.addObject(centerObj);
+        scene.addObject(enemy1);
+        scene.addObject(enemy2);
+
+        double lastTime = glfwGetTime();
+
+        glfwSetFramebufferSizeCallback(Window, (long window, int width, int height) -> {
+            glViewport(0, 0, width, height);
+
+            glMatrixMode(GL_PROJECTION);
+            glLoadIdentity();
+            float ratio = (float) width / (float) height;
+
+            glOrtho(-ratio, ratio, -1f, 1f, -1f, 1f);
+
+            glMatrixMode(GL_MODELVIEW);
+        });
+
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glOrtho(-(640f/480f), (640f/480f), -1f, 1f, -1f, 1f);
+        glMatrixMode(GL_MODELVIEW);
+
         while(!glfwWindowShouldClose(Window)) {
+
+            double currentTime = glfwGetTime();
+            float deltaTime = (float) (currentTime - lastTime);
+            lastTime = currentTime;
+
             if(glfwGetKey(Window, GLFW_KEY_ENTER) == GL_TRUE) {
                 input += 0.01;
-            };
+            }
 
             if(glfwGetKey(Window, GLFW_KEY_ESCAPE) == GL_TRUE) {
                 glfwDestroyWindow(Window);
                 break;
-            };
-            glfwPollEvents();
+            }
+
             glClear(GL_COLOR_BUFFER_BIT);
-            glBegin(GL_QUADS);
-                glColor4f(1+input,0+input,0-input,0);
-                glVertex2f(-0.5f, 0.5f + input);
-                glColor4f(1-input,1,0+input,0+input);
-                glVertex2f(0.5f, 0.5f);
-                glColor4f(1-input,0,1,0+input);
-                glVertex2f(0.5f-input, -0.5f-input);
-                glColor4f(1+input,0-input,1,0+input);
-                glVertex2f(-0.5f, -0.5f+input);
-            glEnd();
+            glfwPollEvents();
+
+            scene.sceneLoop(deltaTime);
+
             glfwSwapBuffers(Window);
         }
         glfwTerminate();
