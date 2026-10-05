@@ -1,95 +1,98 @@
 package org.KovD;
+
 import org.KovD.Classes.*;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
+
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
 public class Main {
+
     public static void main(String[] args) {
-        System.out.println("Hello World");
+
         if (!glfwInit()) {
             throw new IllegalStateException("No init in my inits");
         }
 
-        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-        long Window = glfwCreateWindow(640, 480, "Hello World", 0, 0);
+        WindowInitializer windowManager = new WindowInitializer();
 
+        long Window = windowManager.CreateWindow();
         if (Window == 0) {
             throw new IllegalStateException("No window :(");
         }
 
         GLFWVidMode Video_mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-        glfwSetWindowPos(Window, (Video_mode.width() - 640) / 2, (Video_mode.height() - 480) / 2);
+        glfwSetWindowPos(Window, (Video_mode.width() - windowManager.getWindowWidth()) / 2, (Video_mode.height() - windowManager.getWindowHeight()) / 2);
 
-        glfwShowWindow(Window);
+        windowManager.initalizeWindow(Window);
 
-        glfwMakeContextCurrent(Window);
         GL.createCapabilities();
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glEnable(GL_TEXTURE_2D);
-
-
-        glColor3f(1f, 1f, 1f);
-        float input = 0;
+        int[] fbW = new int[1];
+        int[] fbH = new int[1];
+        glfwGetFramebufferSize(Window, fbW, fbH);
+        glViewport(0, 0, fbW[0], fbH[0]);
+        Renderer.init(fbW[0], fbH[0]);
 
         Scene scene = new Scene();
         String texPath = "C:\\Java_projekt\\Beadando_Milef\\src\\main\\resources\\textures\\enemy.png";
+        String playerTextPath = "C:\\Java_projekt\\Beadando_Milef\\src\\main\\resources\\textures\\player.png";
 
-        GameObject centerObj = new GameObject(0.2f, 0f, texPath);
+        Player player = new Player(fbW[0] / 2f, fbH[0] / 2f, playerTextPath, 3f);
+        player.setActive(true);
 
-        Enemy enemy1 = new Enemy(-1.0f, 1.0f, texPath, 100, 0.5f);
-        Enemy enemy2 = new Enemy(1.0f, 1.0f, texPath, 100, 0.5f);
+        spawner entitySpawner = new spawner(scene, 20, Window, player);
+        entitySpawner.setActive(true);
 
-        enemy1.setTarget(centerObj);
-        enemy2.setTarget(centerObj);
-
-        scene.addObject(centerObj);
-        scene.addObject(enemy1);
-        scene.addObject(enemy2);
-
-        double lastTime = glfwGetTime();
+        scene.addObject(player);
+        scene.addObject(entitySpawner);
 
         glfwSetFramebufferSizeCallback(Window, (long window, int width, int height) -> {
             glViewport(0, 0, width, height);
-
-            glMatrixMode(GL_PROJECTION);
-            glLoadIdentity();
-            float ratio = (float) width / (float) height;
-
-            glOrtho(-ratio, ratio, -1f, 1f, -1f, 1f);
-
-            glMatrixMode(GL_MODELVIEW);
+            Renderer.setScreenSize(width, height);
         });
 
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glOrtho(-(640f/480f), (640f/480f), -1f, 1f, -1f, 1f);
-        glMatrixMode(GL_MODELVIEW);
+        double[] mx = new double[1];
+        double[] my = new double[1];
+        int[] w = new int[1];
+        int[] h = new int[1];
 
-        while(!glfwWindowShouldClose(Window)) {
+        double lastTime = glfwGetTime();
 
+        while (!glfwWindowShouldClose(Window)) {
             double currentTime = glfwGetTime();
             float deltaTime = (float) (currentTime - lastTime);
             lastTime = currentTime;
 
-            if(glfwGetKey(Window, GLFW_KEY_ENTER) == GL_TRUE) {
-                input += 0.01;
-            }
-
-            if(glfwGetKey(Window, GLFW_KEY_ESCAPE) == GL_TRUE) {
-                glfwDestroyWindow(Window);
+            if (glfwGetKey(Window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+                glfwSetWindowShouldClose(Window, true);
                 break;
             }
 
-            glClear(GL_COLOR_BUFFER_BIT);
             glfwPollEvents();
 
+            glfwGetCursorPos(Window, mx, my);
+            glfwGetWindowSize(Window, w, h);
+            glfwGetFramebufferSize(Window, fbW, fbH);
+            if (w[0] > 0 && h[0] > 0) {
+                float worldX = (float) (mx[0] * fbW[0] / w[0]);
+                float worldY = (float) (my[0] * fbH[0] / h[0]);
+                player.followTo(worldX, worldY);
+            }
+
+            glClear(GL_COLOR_BUFFER_BIT);
             scene.sceneLoop(deltaTime);
+
+            int err = glGetError();
+            if (err != 0) System.out.println("GL hiba: 0x" + Integer.toHexString(err));
 
             glfwSwapBuffers(Window);
         }
+
+        Renderer.cleanup();
+        glfwDestroyWindow(Window);
         glfwTerminate();
     }
 }

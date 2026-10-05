@@ -22,7 +22,9 @@ public class Scene {
 
     private void renderAll() {
         for (GameObject obj : gameObjects) {
-            obj.Draw();
+            if (obj instanceof entity) {
+                ((entity) obj).Draw();
+            }
         }
     }
 
