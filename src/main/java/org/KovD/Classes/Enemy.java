@@ -1,20 +1,28 @@
 package org.KovD.Classes;
 
+import javax.swing.text.html.parser.Entity;
+
 public class Enemy extends entity {
     private int health;
     private float speed;
-    private Vector2 target;
+    private float basespeed;
     private float dirX = 0;
     private float dirY = 0;
     private boolean hasTarget = false;
+    private static final float MARGIN = 15f;
+    private Score score;
+    private entity target;
 
-    public Enemy(float x, float y, String texturePath, int health, float speed) {
-        super(x, y, texturePath);
+    public Enemy(float x, float y, String texturePath, int health, float speed, String name,Score score) {
+        super(x, y, texturePath, name);
         this.health = health;
-        this.speed = speed;
+        this.basespeed = speed;
+        this.speed = basespeed;
+        this.score = score;
     }
 
     public void activateEnemy(float spawnX, float spawnY, entity target) {
+        calc_speed();
         this.getPosition().x = spawnX;
         this.getPosition().y = spawnY;
         setTarget(target);
@@ -27,9 +35,11 @@ public class Enemy extends entity {
 
     public void deactivateEnemy() {
         this.active = false;
+        speed = basespeed;
     }
 
     public void setTarget(entity target) {
+        this.target = target;
         float dx = target.getPosition().x - this.getPosition().x;
         float dy = target.getPosition().y - this.getPosition().y;
         float distance = (float) Math.sqrt(dx * dx + dy * dy);
@@ -41,11 +51,17 @@ public class Enemy extends entity {
         }
     }
 
-    private static final float MARGIN = 100f;
+    public void calc_speed() {
+        if (this.score != null) {
+            int maxExtraSpeed = this.score.getScore() / 2;
+            this.speed = this.speed + (float)(Math.random() * maxExtraSpeed);
+        }
+    }
 
     @Override
     public void update(float deltaTime) {
         if (hasTarget && active) {
+            isTheHeavyDead();
             this.getPosition().x += dirX * speed * deltaTime;
             this.getPosition().y += dirY * speed * deltaTime;
             float x = this.getPosition().x;
@@ -54,6 +70,14 @@ public class Enemy extends entity {
             if (x < -MARGIN || x > Renderer.getScreenWidth() + MARGIN
                     || y < -MARGIN || y > Renderer.getScreenHeight() + MARGIN) {
                 deactivateEnemy();
+            }
+        }
+    }
+
+    public void isTheHeavyDead(){
+        if (this.getEntityhitbox().intersects(target.getEntityhitbox())) {
+            if (target instanceof Player) {
+                ((Player) target).setDead(true);
             }
         }
     }

@@ -6,12 +6,16 @@ public class entity extends GameObject {
     private float angle = 0;
     private float scale = 1f;
     private final int texW, texH;
+    private hitbox entityhitbox;
 
-    public entity(float x, float y, String TexturePath) {
+    public entity(float x, float y, String TexturePath, String name) {
         this.position = new Vector2(x, y);
+        this.name = name;
+        id += 1;
         this.textureId = TextureLoader.load(TexturePath);
         this.texW = TextureLoader.getWidth(textureId);
         this.texH = TextureLoader.getHeight(textureId);
+        this.entityhitbox = new hitbox(this, texW / 2f, texW / 2f, texH / 2f);
     }
 
     public void setPosition(float x, float y) {
@@ -29,4 +33,5 @@ public class entity extends GameObject {
     public Vector2 getPosition() {
         return this.position;
     }
+    public hitbox getEntityhitbox() { return this.entityhitbox; }
 }

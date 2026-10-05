@@ -8,34 +8,38 @@ public class spawner extends GameObject {
 
     public boolean canSpawn = true;
     public int spawnAtTheTime = 1;
-    public float spawnInterval = 0.5f;
+    public float spawnInterval = 1.5f;
     private float timer = 0.0f;
-    private long windowHandle;
     private entity PlayerTraget;
+    private int y_start = -10;
+    private Score score;
+    public float minInterval = 0.3f;
+    public float intervalDecay = 0.02f;
+    public float spawn_number_inc = 0.01f;
 
-    public spawner(Scene scene, int poolSize, long windowHandle, entity Target) {
+    public spawner(Scene scene, int poolSize, entity Target, Score score) {
         this.enemyPool = new ArrayList<>();
         this.PlayerTraget = Target;
-        this.windowHandle = windowHandle;
+        this.score = score;
         String path = "C:\\Java_projekt\\Beadando_Milef\\src\\main\\resources\\textures\\enemy.png";
 
         for (int i = 0; i < poolSize; i++) {
-            Enemy enemy = new Enemy(0, 0, path, 10, 150f);
+            Enemy enemy = new Enemy(0, 0, path, 10, 160f, "Enemy" + i, score);
             enemy.deactivateEnemy();
             enemyPool.add(enemy);
             scene.addObject(enemy);
         }
     }
 
-    @Override
     public void update(float deltaTime) {
         if (!active) return;
         if (!canSpawn) return;
 
-
         timer += deltaTime;
 
-        if (timer >= spawnInterval) {
+        float interval = Math.max(minInterval, spawnInterval - score.getScore() * intervalDecay);
+        spawnAtTheTime = 1 + (int)(score.getScore() * spawn_number_inc);
+        if (timer >= interval) {
             spawnEnemies(spawnAtTheTime);
             timer = 0.0f;
         }
@@ -48,7 +52,7 @@ public class spawner extends GameObject {
         for (Enemy enemy : enemyPool) {
             if (!enemy.isActive()) {
                 float randomX = (float) (Math.random() * screenW);
-                enemy.activateEnemy(randomX, -50f, this.PlayerTraget);
+                enemy.activateEnemy(randomX, y_start, this.PlayerTraget);
                 spawned++;
                 if (spawned >= count) break;
             }

@@ -1,5 +1,7 @@
 package org.KovD.Classes;
 
+import org.lwjgl.glfw.GLFWVidMode;
+
 import java.awt.*;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -11,6 +13,9 @@ import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_FORWARD_COMPAT;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_PROFILE;
 import static org.lwjgl.glfw.GLFW.GLFW_TRUE;
 import static org.lwjgl.glfw.GLFW.glfwWindowHint;
+import static org.lwjgl.glfw.GLFW.GLFW_CURSOR;
+import static org.lwjgl.glfw.GLFW.GLFW_CURSOR_HIDDEN;
+import static org.lwjgl.glfw.GLFW.glfwSetInputMode;
 
 public class WindowInitializer {
     private int windowWidth = 640;
@@ -36,6 +41,7 @@ public class WindowInitializer {
 
     public void initalizeWindow(long Window) {
         glfwShowWindow(Window);
+        glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
         glfwMakeContextCurrent(Window);
     }
 

@@ -1,9 +1,7 @@
 package org.KovD;
 
 import org.KovD.Classes.*;
-import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
-
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
@@ -22,30 +20,27 @@ public class Main {
             throw new IllegalStateException("No window :(");
         }
 
-        GLFWVidMode Video_mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-        glfwSetWindowPos(Window, (Video_mode.width() - windowManager.getWindowWidth()) / 2, (Video_mode.height() - windowManager.getWindowHeight()) / 2);
-
         windowManager.initalizeWindow(Window);
 
         GL.createCapabilities();
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
         int[] fbW = new int[1];
         int[] fbH = new int[1];
         glfwGetFramebufferSize(Window, fbW, fbH);
         glViewport(0, 0, fbW[0], fbH[0]);
+
         Renderer.init(fbW[0], fbH[0]);
-
+        score_renderer scoreRend = new score_renderer();
+        scoreRend.init(Window);
         Scene scene = new Scene();
-        String texPath = "C:\\Java_projekt\\Beadando_Milef\\src\\main\\resources\\textures\\enemy.png";
-        String playerTextPath = "C:\\Java_projekt\\Beadando_Milef\\src\\main\\resources\\textures\\player.png";
-
-        Player player = new Player(fbW[0] / 2f, fbH[0] / 2f, playerTextPath, 3f);
-        player.setActive(true);
-
-        spawner entitySpawner = new spawner(scene, 20, Window, player);
+        PlayerBuilder playerBuilder = new PlayerBuilder();
+        Player player = playerBuilder.CreateMySexyPlayer(fbW[0] / 2f, fbH[0] / 2f);
+        Score score = new Score();
+        spawner entitySpawner = new spawner(scene, 10000, player, score);
         entitySpawner.setActive(true);
-
+        scene.addObject(score);
         scene.addObject(player);
         scene.addObject(entitySpawner);
 
@@ -62,6 +57,10 @@ public class Main {
         double lastTime = glfwGetTime();
 
         while (!glfwWindowShouldClose(Window)) {
+            if(player.isDead()){
+                glfwSetWindowShouldClose(Window, true);
+                break;
+            }
             double currentTime = glfwGetTime();
             float deltaTime = (float) (currentTime - lastTime);
             lastTime = currentTime;
@@ -85,6 +84,7 @@ public class Main {
             glClear(GL_COLOR_BUFFER_BIT);
             scene.sceneLoop(deltaTime);
 
+            scoreRend.render_score(score);
             int err = glGetError();
             if (err != 0) System.out.println("GL hiba: 0x" + Integer.toHexString(err));
 
