@@ -13,4 +13,8 @@ public class GameObject {
 
     public void update(float deltaTime) {
     }
+
+    public void reset() {
+
+    }
 }

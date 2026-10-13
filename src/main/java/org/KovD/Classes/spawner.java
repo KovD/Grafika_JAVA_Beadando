@@ -9,6 +9,10 @@ public class spawner extends GameObject {
     public boolean canSpawn = true;
     public int spawnAtTheTime = 1;
     public float spawnInterval = 1.5f;
+
+    public float spawnIntervalBase = 1.5f;
+    public int spawnAtTheTimeBase = 1;
+
     private float timer = 0.0f;
     private entity PlayerTraget;
     private int y_start = -10;
@@ -16,15 +20,16 @@ public class spawner extends GameObject {
     public float minInterval = 0.3f;
     public float intervalDecay = 0.02f;
     public float spawn_number_inc = 0.01f;
+    private int textureID;
 
     public spawner(Scene scene, int poolSize, entity Target, Score score) {
         this.enemyPool = new ArrayList<>();
         this.PlayerTraget = Target;
         this.score = score;
-        String path = "C:\\Java_projekt\\Beadando_Milef\\src\\main\\resources\\textures\\enemy.png";
+        this.textureID = TextureLoader.load("/textures/enemy.png");
 
         for (int i = 0; i < poolSize; i++) {
-            Enemy enemy = new Enemy(0, 0, path, 10, 160f, "Enemy" + i, score);
+            Enemy enemy = new Enemy(0, 0, textureID, 10, 160f, "Enemy" + i, score);
             enemy.deactivateEnemy();
             enemyPool.add(enemy);
             scene.addObject(enemy);
@@ -43,6 +48,16 @@ public class spawner extends GameObject {
             spawnEnemies(spawnAtTheTime);
             timer = 0.0f;
         }
+    }
+
+    @Override
+    public void reset(){
+        spawnAtTheTime = spawnAtTheTimeBase;
+        spawnInterval = spawnIntervalBase;
+    }
+
+    public List<Enemy> getEnemies() {
+        return enemyPool;
     }
 
     private void spawnEnemies(int count) {

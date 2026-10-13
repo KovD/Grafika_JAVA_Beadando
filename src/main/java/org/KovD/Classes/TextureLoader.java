@@ -3,6 +3,8 @@ package org.KovD.Classes;
 import static org.lwjgl.opengl.GL33.*;
 import static org.lwjgl.stb.STBImage.*;
 import org.lwjgl.BufferUtils;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.IntBuffer;
 import java.nio.ByteBuffer;
 
@@ -19,7 +21,26 @@ public class TextureLoader {
 
         stbi_set_flip_vertically_on_load(false);
 
-        ByteBuffer img = stbi_load(path, w, h, c, 4);
+        ByteBuffer fileData;
+        try (InputStream in = TextureLoader.class.getResourceAsStream(path)) {
+            if (in == null) throw new IllegalStateException("Nem található a textúra a classpath-on: " + path);
+            java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+            byte[] chunk = new byte[8192];
+            int n;
+            while ((n = in.read(chunk)) != -1) {
+                out.write(chunk, 0, n);
+            }
+            byte[] bytes = out.toByteArray();
+            fileData = BufferUtils.createByteBuffer(bytes.length);
+            fileData.put(bytes).flip();
+        } catch (IOException e) {
+            throw new IllegalStateException("Hiba a textúra olvasásakor: " + path, e);
+        }
+
+        ByteBuffer img = stbi_load_from_memory(fileData, w, h, c, 4);
+        if (img == null) {
+            throw new IllegalStateException("Nem sikerült dekódolni: " + path + " (" + stbi_failure_reason() + ")");
+        }
 
         int id = glGenTextures();
         glBindTexture(GL_TEXTURE_2D, id);
@@ -35,6 +56,7 @@ public class TextureLoader {
         sizes.put(id, new int[]{ w.get(0), h.get(0) });
         return id;
     }
+
 
     public static int getWidth(int textureId)  { return sizes.get(textureId)[0]; }
     public static int getHeight(int textureId) { return sizes.get(textureId)[1]; }

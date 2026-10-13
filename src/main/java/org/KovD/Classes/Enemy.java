@@ -1,7 +1,5 @@
 package org.KovD.Classes;
 
-import javax.swing.text.html.parser.Entity;
-
 public class Enemy extends entity {
     private int health;
     private float speed;
@@ -13,8 +11,8 @@ public class Enemy extends entity {
     private Score score;
     private entity target;
 
-    public Enemy(float x, float y, String texturePath, int health, float speed, String name,Score score) {
-        super(x, y, texturePath, name);
+    public Enemy(float x, float y, int textureID, int health, float speed, String name,Score score) {
+        super(x, y, textureID, name);
         this.health = health;
         this.basespeed = speed;
         this.speed = basespeed;
@@ -80,5 +78,10 @@ public class Enemy extends entity {
                 ((Player) target).setDead(true);
             }
         }
+    }
+
+    @Override
+    public void reset(){
+        deactivateEnemy();
     }
 }

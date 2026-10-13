@@ -1,18 +1,18 @@
 package org.KovD.Classes;
 
 public class entity extends GameObject {
-    private Vector2 position;
+    protected Vector2 position;
     private int textureId;
     private float angle = 0;
     private float scale = 1f;
     private final int texW, texH;
     private hitbox entityhitbox;
 
-    public entity(float x, float y, String TexturePath, String name) {
+    public entity(float x, float y, int texture, String name) {
         this.position = new Vector2(x, y);
         this.name = name;
         id += 1;
-        this.textureId = TextureLoader.load(TexturePath);
+        this.textureId = texture;
         this.texW = TextureLoader.getWidth(textureId);
         this.texH = TextureLoader.getHeight(textureId);
         this.entityhitbox = new hitbox(this, texW / 2f, texW / 2f, texH / 2f);

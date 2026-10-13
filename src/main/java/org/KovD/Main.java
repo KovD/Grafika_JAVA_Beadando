@@ -3,12 +3,12 @@ package org.KovD;
 import org.KovD.Classes.*;
 import org.lwjgl.opengl.GL;
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL33.*;
 
 public class Main {
 
     public static void main(String[] args) {
-
+        boolean startGame = false;
         if (!glfwInit()) {
             throw new IllegalStateException("No init in my inits");
         }
@@ -38,11 +38,15 @@ public class Main {
         PlayerBuilder playerBuilder = new PlayerBuilder();
         Player player = playerBuilder.CreateMySexyPlayer(fbW[0] / 2f, fbH[0] / 2f);
         Score score = new Score();
-        spawner entitySpawner = new spawner(scene, 10000, player, score);
+        Overlay CanvasLayer = new Overlay("CanvasLayer");
+        scene.addObject(CanvasLayer);
+        spawner entitySpawner = new spawner(scene, 500, player, score);
+        bulletSpawner bulletSpawner = new bulletSpawner(scene, 500, player, entitySpawner.getEnemies());
         entitySpawner.setActive(true);
         scene.addObject(score);
         scene.addObject(player);
         scene.addObject(entitySpawner);
+        scene.addObject(bulletSpawner);
 
         glfwSetFramebufferSizeCallback(Window, (long window, int width, int height) -> {
             glViewport(0, 0, width, height);
@@ -57,10 +61,13 @@ public class Main {
         double lastTime = glfwGetTime();
 
         while (!glfwWindowShouldClose(Window)) {
-            if(player.isDead()){
-                glfwSetWindowShouldClose(Window, true);
-                break;
+            if (player.isDead()) {
+                player.setDead(false);
+
+                scene.reset_scene();
+                startGame = false;
             }
+
             double currentTime = glfwGetTime();
             float deltaTime = (float) (currentTime - lastTime);
             lastTime = currentTime;
@@ -72,19 +79,34 @@ public class Main {
 
             glfwPollEvents();
 
-            glfwGetCursorPos(Window, mx, my);
-            glfwGetWindowSize(Window, w, h);
-            glfwGetFramebufferSize(Window, fbW, fbH);
-            if (w[0] > 0 && h[0] > 0) {
-                float worldX = (float) (mx[0] * fbW[0] / w[0]);
-                float worldY = (float) (my[0] * fbH[0] / h[0]);
-                player.followTo(worldX, worldY);
+            if (!startGame && glfwGetKey(Window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+                startGame = true;
+                lastTime = glfwGetTime();
+                deltaTime = 0f;
+            }
+
+            if (glfwGetKey(Window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+                bulletSpawner.shoot();
             }
 
             glClear(GL_COLOR_BUFFER_BIT);
-            scene.sceneLoop(deltaTime);
 
-            scoreRend.render_score(score);
+            if (startGame) {
+                glfwGetCursorPos(Window, mx, my);
+                glfwGetWindowSize(Window, w, h);
+                glfwGetFramebufferSize(Window, fbW, fbH);
+                if (w[0] > 0 && h[0] > 0) {
+                    float worldX = (float) (mx[0] * fbW[0] / w[0]);
+                    float worldY = (float) (my[0] * fbH[0] / h[0]);
+                    player.followTo(worldX, worldY);
+                }
+
+                scene.sceneLoop(deltaTime);
+                scoreRend.render_score(score);
+            } else {
+                scoreRend.render_start_screen();
+            }
+
             int err = glGetError();
             if (err != 0) System.out.println("GL hiba: 0x" + Integer.toHexString(err));
 

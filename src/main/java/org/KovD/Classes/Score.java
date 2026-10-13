@@ -8,6 +8,7 @@ public class Score extends GameObject {
         return score;
     }
 
+
     public void inc_score() {
         score++;
     }
@@ -20,5 +21,10 @@ public class Score extends GameObject {
             calculator -= 1f;
             inc_score();
         }
+    }
+
+    @Override
+    public void reset() {
+        score = 0;
     }
 }

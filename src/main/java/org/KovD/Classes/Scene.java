@@ -32,4 +32,10 @@ public class Scene {
         updateAll(deltaTime);
         renderAll();
     }
+
+    public void reset_scene() {
+        for (GameObject obj : gameObjects){
+            obj.reset();
+        }
+    }
 }
